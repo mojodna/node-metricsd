@@ -246,6 +246,24 @@ module.exports = function(options) {
     };
 
     /**
+     * Create a named histogram.
+     */
+    var Histogram = function(name) {
+        if (!(this instanceof Histogram)) {
+            return new Histogram(name);
+        }
+
+        this.name = name;
+    };
+
+    /**
+     * Update the histogram's value.
+     */
+    Histogram.prototype.update = function(value) {
+        updateHistogram(this.name, value);
+    };
+
+    /**
      * Create a named timer and start it immediately. If you don't wish to start
      * timing immediately, call start() when you're ready.
      */
@@ -263,23 +281,12 @@ module.exports = function(options) {
         this.start();
     };
 
-    /**
-     * Create a named histogram.
-     */
-    var Histogram = function(name) {
-        if (!(this instanceof Histogram)) {
-            return new Histogram(name);
-        }
-
-        this.name = name;
-    };
-
-    /**
-     * Update the histogram's value.
-     */
-    Histogram.prototype.update = function(value) {
-        updateHistogram(this.name, value);
-    };
+    Object.defineProperty(Timer, "elapsedTime", {
+        get: function() {
+            return new Date() - this.startTime;
+        },
+        enumerable: true
+    });
 
     /**
      * Measure a lap time.
@@ -322,7 +329,10 @@ module.exports = function(options) {
             this.stopTime = new Date();
             var elapsed = this.stopTime - this.startTime;
 
-            updateHistogram(name, elapsed);
+            if (name) {
+                // TODO name should be Array or string (in update*)
+                updateHistogram(name, elapsed);
+            }
 
             return elapsed;
         }
