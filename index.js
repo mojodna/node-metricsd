@@ -278,15 +278,16 @@ module.exports = function(options) {
         this.laps = [];
         this.stopTime = null;
 
+        Object.defineProperty(this, "elapsedTime", {
+            get: function() {
+                // TODO change new Date to Date.now() everywhere
+                return new Date() - this.startTime;
+            },
+            enumerable: true
+        });
+
         this.start();
     };
-
-    Object.defineProperty(Timer, "elapsedTime", {
-        get: function() {
-            return new Date() - this.startTime;
-        },
-        enumerable: true
-    });
 
     /**
      * Measure a lap time.
