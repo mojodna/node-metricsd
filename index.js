@@ -357,6 +357,11 @@ module.exports = function(options) {
 
     /**
      * Create a named counter.
+     *
+     * Can be incremented or decremented, which can be useful if you don't have
+     * an absolute value to hand. If you do, it's probably better to use a
+     * gauge rather than worry about how to initialize a counter correctly ;)
+     *
      */
     API.count = function(name) {
         return new Counter(name);
@@ -364,6 +369,8 @@ module.exports = function(options) {
 
     /**
      * Create a named gauge.
+     *
+     * For measuring a continuous value, such as current queue or database size.
      */
     API.gauge = function(name) {
         return new Gauge(name);
