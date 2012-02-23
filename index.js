@@ -1,7 +1,29 @@
 "use strict";
 
-var EPHEMERAL_LIFETIME_MS = 1000;
-
+/**
+ * Export a factory function to create a Metrics instance.
+ *
+ * Default options are:
+ *
+ * {
+ *     host: "localhost",
+ *     port: 8125,
+ *     enabled: true,
+ *     prefix: null,
+ *     timeout: 1000
+ * }
+ *
+ * You may also provide your own dgram socket in options.socket if required.
+ *
+ * If you don't provide a socket, the internal socket will be closed to free
+ * up resources every after the metrics instance has been idle for at least
+ * options.timeout milliseconds. A delay of 10*timeout is also used to close
+ * the internal socket in order to clear Buffers it has been holding on to.
+ *
+ * If options.enabled is false, all code will run but flushMetric will not
+ * attempt to write to the socket, and therefore the socket will never be
+ * opened. Good for testing locally if you don't care about metrics there.
+ */
 module.exports = function(options) {
     options = options || {};
 
@@ -10,7 +32,7 @@ module.exports = function(options) {
     var providedSocket = options.socket;
     var prefix = options.prefix || null;
     var enabled = 'enabled' in options ? options.enabled : true;
-    var socketTimeout = options.timeout || EPHEMERAL_LIFETIME_MS;
+    var socketTimeout = options.timeout || 1000;
 
     var ephemeralSocket = null;
     var lastUse = null;
@@ -58,6 +80,7 @@ module.exports = function(options) {
                 ephemeralSocket.on("error", function(err) {});
 
                 // try to clean up the socket periodically
+                // to free up resources if this instance is idle
                 gcTimer = setInterval(gcSocket, 250);
 
                 // forcibly close the socket periodically (ignoring last use)
@@ -91,6 +114,10 @@ module.exports = function(options) {
         enabled = val;
     });
 
+    /**
+     * The name will be appended to prefix if one was specified in
+     * options and whitespace in name will be replaced with underscores.
+     */
     var formatMetricName = function(name) {
         if (prefix) {
             name = prefix + "." + name;
@@ -140,12 +167,6 @@ module.exports = function(options) {
 
     var deleteMeter = function(name) {
         var metric = formatMetricName(name) + ":delete";
-
-        flushMetric(metric);
-    };
-
-    var markMeter = function(name) {
-        var metric = formatMetricName(name);
 
         flushMetric(metric);
     };
@@ -368,11 +389,22 @@ module.exports = function(options) {
 
     /**
      * Mark an occurrence of an event.
+     *
+     * For measuring the rate of occurence of the named event.
      */
-    API.mark = markMeter;
+    API.mark = function(name) {
+        var metric = formatMetricName(name);
+
+        flushMetric(metric);
+    };
 
     /**
-     * Create a named timer.
+     * Create a timer with optional name.
+     *
+     * For measuring the duration of the named event.
+     * Name can also be specified in the optional stop() method.
+     * Or you can read the elapsedTime property and manually
+     * update a histogram yourself.
      */
     API.time = function(name) {
         return new Timer(name);
@@ -380,6 +412,9 @@ module.exports = function(options) {
 
     /**
      * Time from now until the callback fires.
+     *
+     * Returns a wrapped callback that you should pass to the method
+     * that you're timing. Name and callback are both required.
      */
     API.timeCallback = function(name, callback) {
         callback = callback || function() {};
