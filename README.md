@@ -1,9 +1,11 @@
 node-metrics
 ============
 
-I am a node.js client library for [metricsd](https://github.com/mojodna/metricsd), a metrics aggregator for [Graphite](http://graphite.wikidot.com) that supports counters, histograms and meters.
+I am a node.js client library for [metricsd](https://github.com/mojodna/metricsd), a metrics aggregator for [Graphite](http://graphite.wikidot.com) that supports counters, histograms and meters. Metricsd 0.4.2+ is recommended.
 
 [![Build Status](https://secure.travis-ci.org/mojodna/node-metricsd.png?branch=master)](http://travis-ci.org/mojodna/node-metricsd)
+
+Install with `npm install metricsd` or download if you prefer.
 
 
 Usage
