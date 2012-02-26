@@ -3,6 +3,7 @@
   "name": "metricsd",
   "description": "metricsd (https://github.com/mojodna/metricsd) client",
   "version": "0.1.0-SNAPSHOT",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git://github.com/mojodna/node-metricsd.git"
