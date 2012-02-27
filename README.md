@@ -68,7 +68,6 @@ Create a new `Counter` with `metrics.count(name)` to track relative values.
   var counter = metrics.count('numThings');
   counter.inc(2);  // +2
   counter.dec();   // -1
-  counter.clear(); // zero the counter
 
 ```
 
