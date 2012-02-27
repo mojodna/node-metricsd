@@ -120,7 +120,7 @@ histogram.update(5);  // min == 5, max == 10, mean == 17.5
 
 ```
 
-Alternately, write directly to a named gauge with convenience functions on
+Alternately, write directly to a named histogram with convenience functions on
 `metrics` itself:
 
 * `metrics.histogram(name)` - create a histogram
