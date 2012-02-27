@@ -13,9 +13,18 @@ describe("require('metricsd')", function() {
 
 describe("metrics", function() {
     var metrics;
+    var _send;
 
-    before(function() {
+    beforeEach(function() {
         metrics = metricsd();
+
+        // allow metrics._send() to be mocked
+        _send = metrics._send;
+    });
+
+    afterEach(function() {
+        metrics._send = _send;
+        _send = undefined;
     });
 
     describe(".enabled", function() {
@@ -113,18 +122,116 @@ describe("metrics", function() {
     });
 
     describe("#inc", function() {
-        it("should increment the named counter");
-        it("should increment the named counter by the specified value");
+        it("should increment the named counter", function(done) {
+            var name = "Whately";
+
+            metrics._send = function(str) {
+                expect(str).to.equal(name + ":1|c\n");
+
+                done();
+            };
+
+            metrics.inc(name);
+        });
+
+        it("should increment the named counter by the specified value", function(done) {
+            var name = "Florence";
+            var value = 12;
+
+            metrics._send = function(str) {
+                expect(str).to.equal(name + ":" + value + "|c\n");
+
+                done();
+            };
+
+            metrics.inc(name, value);
+        });
+
+        it("should do nothing if no name was provided", function(done) {
+            metrics._send = function(str) {
+                expect(str).to.equal(undefined);
+            }
+
+            metrics.inc();
+
+            setTimeout(done, 10);
+        });
     });
 
     describe("#dec", function() {
-        it("should decrement the named counter");
-        it("should decrement the named counter by the specified value");
+        it("should decrement the named counter", function(done) {
+            var name = "x";
+
+            metrics._send = function(str) {
+                expect(str).to.equal(name + ":-1|c\n");
+
+                done();
+            };
+
+            metrics.dec(name);
+        });
+
+        it("should decrement the named counter by the specified value", function(done) {
+            var name = "y";
+            var value = 6;
+
+            metrics._send = function(str) {
+                expect(str).to.equal(name + ":-" + value + "|c\n");
+
+                done();
+            };
+
+            metrics.dec(name, 6);
+        });
+
+        it("should do nothing if no name was provided", function(done) {
+            metrics._send = function(str) {
+                expect(str).to.equal(undefined);
+            }
+
+            metrics.dec();
+
+            setTimeout(done, 10);
+        });
     });
 
     describe("#mark", function() {
-        it("should mark a named meter");
-        it("should do nothing if no name was provided");
+        it("should mark a named meter", function(done) {
+            var name = "m";
+
+            metrics._send = function(str) {
+                expect(str).to.equal(name + "\n");
+
+                done();
+            };
+
+            metrics.mark(name);
+        });
+
+        it("should do nothing if no name was provided", function(done) {
+            metrics._send = function(str) {
+                expect(str).to.equal(undefined);
+            }
+
+            metrics.mark();
+
+            setTimeout(done, 10);
+        });
+    });
+
+    describe("#meter", function() {
+        it("should return a named meter", function() {
+            var name = "Elliot";
+
+            var meter = metrics.meter(name);
+
+            expect(meter).to.be.an.instanceof(metrics.Meter);
+            expect(meter.name).to.equal(name);
+        });
+
+        it("should return undefined if no name was provided", function() {
+            expect(metrics.meter()).to.equal(undefined);
+        });
     });
 
     describe("#time", function() {
@@ -174,45 +281,182 @@ describe("metrics", function() {
     });
 
     describe("#write", function() {
-        it("should write a metricsd string to the network");
+        var port = 1234;
+        var sink;
+
+        beforeEach(function() {
+            metrics = metricsd({
+                port: port
+            });
+        });
+
+        beforeEach(function(done) {
+            sink = require("dgram").createSocket("udp4");
+
+            sink.once("listening", done);
+
+            sink.bind(port);
+        });
+
+        afterEach(function(done) {
+            sink.once("close", done);
+
+            sink.close();
+        });
+
+        it("should write a metricsd string to the network", function(done) {
+            var metric = "prefix.metric.name:1234|g\n";
+
+            sink.once("message", function(msg, rinfo) {
+                expect(msg.toString()).to.equal(metric);
+
+                done()
+            });
+
+            metrics.write(metric);
+        });
+
+        it("should write newline-terminated strings", function(done) {
+            sink.once("message", function(msg, rinfo) {
+                expect(msg.toString()).to.match(/\n$/);
+
+                done()
+            });
+
+            metrics.write("event");
+        });
+
+        it("should not write metrics when disabled", function(done) {
+            metrics.enabled = false;
+
+            sink.on("message", function(msg, rinfo) {
+                // should not have been received
+                expect(msg.toString()).to.equal(undefined);
+            });
+
+            metrics.write("event");
+
+            // give the message time to be sent (if it was indeed sent)
+            setTimeout(done, 10);
+        });
     });
 
     describe("#deleteCounter", function() {
-        it("should delete a named counter");
+        it("should delete a named counter", function(done) {
+            var name = "Dumas";
+
+            metrics._send = function(str) {
+                expect(str).to.equal(name + ":delete|c\n");
+
+                done();
+            };
+
+            metrics.deleteCounter(name);
+        });
     });
 
     describe("#deleteGauge", function() {
-        it("should delete a named gauge");
+        it("should delete a named gauge", function(done) {
+            var name = "BoulderCreek";
+
+            metrics._send = function(str) {
+                expect(str).to.equal(name + ":delete|g\n");
+
+                done();
+            }
+
+            metrics.deleteGauge(name);
+        });
     });
 
     describe("#deleteHistogram", function() {
-        it("should delete a named histogram");
+        it("should delete a named histogram", function(done) {
+            var name = "BooksRead";
+
+            metrics._send = function(str) {
+                expect(str).to.equal(name + ":delete|h\n");
+
+                done();
+            }
+
+            metrics.deleteHistogram(name);
+        });
     });
 
     describe("#deleteMeter", function() {
-        it("should delete a named meter");
+        it("should delete a named meter", function(done) {
+            var name = "visitors";
+
+            metrics._send = function(str) {
+                expect(str).to.equal(name + ":delete\n");
+
+                done();
+            }
+
+            metrics.deleteMeter(name);
+        });
     });
 
     describe("#updateCounter", function() {
-        it("should update named counter with the specified value");
+        it("should update a named counter with the specified value", function(done) {
+            var name = "inboxCount";
+            var value = 74;
+
+            metrics._send = function(str) {
+                expect(str).to.equal(name + ":" + value + "|c\n");
+
+                done();
+            }
+
+            metrics.updateCounter(name, value);
+        });
     });
 
     describe("#updateGauge", function() {
-        it("should update a named gauge with the specified value");
+        it("should update a named gauge with the specified value", function(done) {
+            var name = "height";
+            var value = 12;
+
+            metrics._send = function(str) {
+                expect(str).to.equal(name + ":" + value + "|g\n");
+
+                done();
+            }
+
+            metrics.updateGauge(name, value);
+        });
     });
 
     describe("#updateHistogram", function() {
-        it("should update a named histogram with the specified value");
+        it("should update a named histogram with the specified value", function(done) {
+            var name = "CDsOwned";
+            var value = 126;
+
+            metrics._send = function(str) {
+                expect(str).to.equal(name + ":" + value + "|h\n");
+
+                done();
+            }
+
+            metrics.updateHistogram(name, value);
+        });
     });
 
     describe(".Counter", function() {
         var counter;
+        var name;
+
+        beforeEach(function() {
+            name = "Lily";
+            counter = new metrics.Counter(name);
+        });
+
+        afterEach(function() {
+            counter = undefined;
+            name = undefined;
+        });
 
         it("should have a name", function() {
-            var name = "Lily";
-
-            counter = new metrics.Counter(name);
-
             expect(counter.name).to.equal(name);
         });
 
@@ -225,28 +469,81 @@ describe("metrics", function() {
         });
 
         describe("#inc", function() {
-            it("should increment the named counter");
-            it("should increment the named counter by the specified value");
+            it("should increment the named counter", function(done) {
+                metrics._send = function(str) {
+                    expect(str).to.equal(name + ":1|c\n");
+
+                    done();
+                };
+
+                counter.inc();
+            });
+
+            it("should increment the named counter by the specified value", function(done) {
+                var value = 12;
+
+                metrics._send = function(str) {
+                    expect(str).to.equal(name + ":" + value + "|c\n");
+
+                    done();
+                };
+
+                counter.inc(value);
+            });
         });
 
         describe("#dec", function() {
-            it("should decrement the named counter");
-            it("should decrement the named counter by the specified value");
+            it("should decrement the named counter", function(done) {
+                metrics._send = function(str) {
+                    expect(str).to.equal(name + ":-1|c\n");
+
+                    done();
+                };
+
+                counter.dec();
+            });
+
+            it("should decrement the named counter by the specified value", function(done) {
+                var value = 57;
+
+                metrics._send = function(str) {
+                    expect(str).to.equal(name + ":-" + value + "|c\n");
+
+                    done();
+                };
+
+                counter.dec(57);
+            });
         });
 
-        describe("#clear", function() {
-            it("should clear the named counter");
+        describe("#delete", function() {
+            it("should delete the named counter", function(done) {
+                metrics._send = function(str) {
+                    expect(str).to.equal(name + ":delete|c\n");
+
+                    done();
+                };
+
+                counter.delete();
+            });
         });
     });
 
     describe(".Gauge", function() {
         var gauge;
+        var name;
+
+        beforeEach(function() {
+            name = "Mikhail";
+            gauge = new metrics.Gauge(name);
+        });
+
+        afterEach(function() {
+            gauge = undefined;
+            name = undefined;
+        });
 
         it("should have a name", function() {
-            var name = "Mikhail";
-
-            gauge = new metrics.Gauge(name);
-
             expect(gauge.name).to.equal(name);
         });
 
@@ -258,19 +555,49 @@ describe("metrics", function() {
             expect(factory).to.throw(Error);
         });
 
+        describe("#delete", function() {
+            it("should delete the named gauge", function(done) {
+                metrics._send = function(str) {
+                    expect(str).to.equal(name + ":delete|g\n");
+
+                    done();
+                };
+
+                gauge.delete();
+            });
+        });
+
         describe("#update", function() {
-            it("should update the named gauge");
+            it("should update the named gauge", function(done) {
+                var value = 16;
+
+                metrics._send = function(str) {
+                    expect(str).to.equal(name + ":" + value + "|g\n");
+
+                    done();
+                };
+
+                gauge.update(value);
+            });
         });
     });
 
     describe(".Histogram", function() {
         var histogram;
+        var name;
 
-        it("should have a name", function() {
-            var name = "Susan";
+        beforeEach(function() {
+            name = "Susan";
 
             histogram = new metrics.Histogram(name);
+        });
 
+        afterEach(function() {
+            histogram = undefined;
+            name = undefined;
+        });
+
+        it("should have a name", function() {
             expect(histogram.name).to.equal(name);
         });
 
@@ -282,22 +609,99 @@ describe("metrics", function() {
             expect(factory).to.throw(Error);
         });
 
+        describe("#delete", function() {
+            it("should delete the named histogram", function(done) {
+                metrics._send = function(str) {
+                    expect(str).to.equal(name + ":delete|h\n");
+
+                    done();
+                };
+
+                histogram.delete();
+            });
+        });
+
         describe("#update", function() {
-            it("should update the named histogram");
+            it("should update the named histogram", function(done) {
+                var value = 93;
+
+                metrics._send = function(str) {
+                    expect(str).to.equal(name + ":" + value + "|h\n");
+
+                    done();
+                };
+
+                histogram.update(value);
+            });
+        });
+    });
+
+    describe(".Meter", function() {
+        var meter;
+        var name;
+
+        beforeEach(function() {
+            name = "Laurel";
+            meter = new metrics.Meter(name);
+        });
+
+        afterEach(function() {
+            meter = undefined;
+            name = undefined;
+        });
+
+        it("should have a name", function() {
+            expect(meter.name).to.equal(name);
+        });
+
+        it("should throw an error if a name was omitted", function() {
+            var factory = function() {
+                return new metrics.Meter();
+            };
+
+            expect(factory).to.throw(Error);
+        });
+
+        describe("#delete", function() {
+            it("should delete the named meter", function(done) {
+                metrics._send = function(str) {
+                    expect(str).to.equal(name + ":delete\n");
+
+                    done();
+                };
+
+                meter.delete();
+            });
+        });
+
+        describe("#mark", function() {
+            it("should update the named meter", function(done) {
+                metrics._send = function(str) {
+                    expect(str).to.equal(name + "\n");
+
+                    done();
+                };
+
+                meter.mark();
+            });
         });
     });
 
     describe(".Timer", function() {
         var timer;
+        var name;
+
         beforeEach(function() {
-            timer = metrics.time();
+            name = "Cyrus";
+            timer = metrics.time(name);
+        });
+
+        afterEach(function() {
+            timer = undefined;
+            name = undefined;
         });
 
         it("may have a name", function() {
-            var name = "Cyrus";
-
-            timer = new metrics.Timer(name);
-
             expect(timer.name).to.equal(name);
         });
 
@@ -400,7 +804,19 @@ describe("metrics", function() {
                 }, 1);
             });
 
-            it("should update a histogram with the lap name, if provided");
+            it("should update a histogram with the lap name, if provided", function(done) {
+                var lapName = "last";
+
+                metrics._send = function(str) {
+                    expect(str).to.match(new RegExp(lapName + ":.|h\n"));
+
+                    done();
+                };
+
+                setTimeout(function() {
+                    timer.lap(lapName);
+                }, 1);
+            });
 
             it("should return the lap time", function(done) {
                 setTimeout(function() {
@@ -426,8 +842,16 @@ describe("metrics", function() {
                 }, 1);
             });
 
-            it("should reset the lap timer", function() {
-              
+            it("should reset the lap timer", function(done) {
+                setTimeout(function() {
+                    var firstLapStartedAt = timer.lapStartTime;
+
+                    timer.start();
+
+                    expect(timer.lapStartTime).to.not.equal(firstLapStartedAt);
+
+                    done();
+                }, 1);
             });
 
             it("should reset the stop time", function() {
@@ -444,8 +868,27 @@ describe("metrics", function() {
         });
 
         describe("#stop", function() {
-            it("should update a histogram with the provided name");
-            it("should update a histogram with the timer's name if one wasn't provided");
+            it("should update a histogram with the provided name", function(done) {
+                var providedName = "sprint";
+
+                metrics._send = function(str) {
+                    expect(str).to.match(new RegExp(providedName + ":.|h\n"));
+
+                    done();
+                };
+
+                timer.stop(providedName);
+            });
+
+            it("should update a histogram with the timer's name if one wasn't provided", function(done) {
+                metrics._send = function(str) {
+                    expect(str).to.match(new RegExp(name + ":.|h\n"));
+
+                    done();
+                };
+
+                timer.stop();
+            });
 
             it("should return the elapsed time", function(done) {
                 setTimeout(function() {
@@ -455,13 +898,17 @@ describe("metrics", function() {
                 }, 1);
             });
 
-            it("should do nothing if the timer was already stopped", function() {
+            it("should do nothing if the timer was already stopped", function(done) {
                 timer.stop();
+
+                metrics._send = function(str) {
+                    expect(str).to.equal(undefined);
+                };
 
                 var elapsedTime = timer.stop();
                 expect(elapsedTime).to.equal(undefined);
 
-                // TODO ensure that no write call occurred
+                setTimeout(done, 10);
             });
         });
 
