@@ -12,6 +12,16 @@ Status](https://secure.travis-ci.org/mojodna/node-metricsd.png?branch=master)](h
 Install with `npm install metricsd` or download if you prefer.
 
 
+metricsd?
+=========
+
+[Yeah](https://github.com/mojodna/metricsd). It's like
+[statsd](https://github.com/etsy/statsd), but with more types and less heavy
+lifting, and thus an expanded protocol. `statsd` clients are compatible with
+`metricsd`, but not vice versa. Sorry. If you wanted to, you could probably
+implement a compatibility mode.
+
+
 Usage
 =====
 
@@ -34,15 +44,15 @@ var metricsd = require('metricsd'),
 
 The available options are:
 
- * `host` and `port` - server settings.
- * `enabled` - set to `false` if you don't want to send metrics while testing.
- * `prefix` - if you run more than one environment, machine or module, supply
-   a `prefix` to identify all metrics from this instance.
- * `timeout` - node-metricsd cleans up the internal socket if it's idle using
-   this timeout (milliseconds), and periodically cleans up `Buffers` using `10
-   * timeout`.
- * `socket` - you may provide your own dgram socket. If so, `timeout` is
-   ignored.
+* `host` and `port` - server settings.
+* `enabled` - set to `false` if you don't want to send metrics while testing.
+* `prefix` - if you run more than one environment, machine or module, supply
+  a `prefix` to identify all metrics from this instance.
+* `timeout` - node-metricsd cleans up the internal socket if it's idle using
+  this timeout (milliseconds), and periodically cleans up `Buffer`s using
+  `10 * timeout` (a work-around for 0.6.7 and earlier).
+* `socket` - you may provide your own dgram socket. If so, `timeout` is
+  ignored.
 
 The `metrics` instance exposes the options above as properties: all are
 read-only with the exception of `enabled` which may be toggled at any time.
@@ -65,17 +75,18 @@ Create a new `Counter` with `metrics.count(name)` to track relative values.
 Alternatively, write directly to a named counter with convenience functions on
 `metrics` itself:
 
- * `metrics.count(name)` - create a counter
- * `metrics.inc(name, value)` - update a counter by +value
- * `metrics.dec(name, value)` - update a counter by -value
- * `metrics.updateCounter(name, value)` - update a counter by +value
- * `metrics.deleteCounter(name)` - tell metricsd to stop tracking a counter
+* `metrics.count(name)` - create a counter
+* `metrics.inc(name, value)` - update a counter by +value
+* `metrics.dec(name, value)` - update a counter by -value
+* `metrics.updateCounter(name, value)` - update a counter by +value
+* `metrics.deleteCounter(name)` - tell metricsd to stop tracking a counter
 
 
 Gauges
 ======
 
-Create a new `Gauge` with `metrics.gauge(name)` to track absolute values.
+Create a new `Gauge` with `metrics.gauge(name)` to track absolute values that
+are obtained on a regular basis.
 
 ```javascript
 
@@ -89,9 +100,33 @@ gauge.update(5);  // numThings == 5
 Alternatively, write directly to a named gauge with convenience functions on
 `metrics` itself:
 
- * `metrics.gauge(name)` - create a gauge
- * `metrics.updateGauge(name, value)` - set the named gauge's value
- * `metrics.deleteGauge(name)` - tell metricsd to stop tracking a gauge
+* `metrics.gauge(name)` - create a gauge
+* `metrics.updateGauge(name, value)` - set the named gauge's value
+* `metrics.deleteGauge(name)` - tell metricsd to stop tracking a gauge
+
+
+Histograms
+==========
+
+Create a new `Histogram` with `metrics.histogram(name)` to track intermittent
+values and their statistical breakdowns (max, min, mean, median, 75th
+percentile, etc.).  (metricsd does the hard work.)
+
+```javascript
+
+var histogram = metrics.gauge('numThings');
+histogram.update(10); // min, max, mean == 10
+histogram.update(20); // min == 10, max == 20, mean == 10
+histogram.update(5);  // min == 5, max == 10, mean == 17.5
+
+```
+
+Alternately, write directly to a named gauge with convenience functions on
+`metrics` itself:
+
+* `metrics.histogram(name)` - create a histogram
+* `metrics.updateHistogram(name, value)` - set the named histogram's value
+* `metrics.deleteHistogram(name)` - tell metricsd to stop tracking a histogram
 
 
 Timers
@@ -173,3 +208,9 @@ To send a raw metric with no formatting or prefixes applied, use
 [metricsd](https://github.com/mojodna/metricsd) for more info on formatting.
 
 
+License
+=======
+
+Copyright (c) 2012 Seth Fitzsimmons and Tom Carden
+
+Published under the MIT License.
