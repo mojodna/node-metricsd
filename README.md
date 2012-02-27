@@ -157,12 +157,12 @@ setTimeout(function() {
 }, 10);
 
 setTimeout(function() {
-  timer.lap('otherTime.lap2'); // otherTime.lap1 == 20ms (approx)
+  timer.lap('otherTime.lap2'); // otherTime.lap2 == 20ms (approx)
   assert.ok(timer.running);    // time should not be stopped
 }, 20);
 
 setTimeout(function() {
-  var laps = timer.stop();      // otherTime == 30ms (approx)
+  var laps = timer.stop();      // otherTime == 60ms (approx)
   assert.ok(timer.stopped);     // time should be stopped
   assert.equal(laps.length, 3); // lap times
 }, 30);
