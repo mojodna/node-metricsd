@@ -160,11 +160,8 @@ setTimeout(function() {
   timer.lap('otherTime.lap2'); // flushes otherTime.lap2 == 10ms (approx)
   assert.ok(timer.running);    // time should not be stopped
 
-  var laps = timer.stop();      // flushes otherTime == 20ms (approx)
-  assert.ok(timer.stopped);     // time should be stopped
-  assert.equal(laps.length, 3); // lap times for inspection if needed
-  
-  // quirk note: at time of writing, last entry in `laps` will be anonymous with 0 time
+  var duration = timer.stop(); // flushes otherTime == 20ms (approx)
+  assert.ok(timer.stopped);    // time should be stopped
 }, 20);
 
 ```
