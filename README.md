@@ -152,20 +152,20 @@ Or time a series of related events with `metrics.time(name)` and
 var timer = metrics.time('otherTime');
 
 setTimeout(function() {
-  timer.lap('otherTime.lap1'); // otherTime.lap1 == 10ms (approx)
+  timer.lap('otherTime.lap1'); // flushes otherTime.lap1 == 10ms (approx)
   assert.ok(timer.running);    // time should not be stopped
 }, 10);
 
 setTimeout(function() {
-  timer.lap('otherTime.lap2'); // otherTime.lap2 == 20ms (approx)
+  timer.lap('otherTime.lap2'); // flushes otherTime.lap2 == 10ms (approx)
   assert.ok(timer.running);    // time should not be stopped
-}, 20);
 
-setTimeout(function() {
-  var laps = timer.stop();      // otherTime == 60ms (approx)
+  var laps = timer.stop();      // flushes otherTime == 20ms (approx)
   assert.ok(timer.stopped);     // time should be stopped
-  assert.equal(laps.length, 3); // lap times
-}, 30);
+  assert.equal(laps.length, 3); // lap times for inspection if needed
+  
+  // quirk note: at time of writing, last entry in `laps` will be anonymous with 0 time
+}, 20);
 
 ```
 
