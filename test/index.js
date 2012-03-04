@@ -13,10 +13,18 @@ describe("require('metricsd')", function() {
 
 describe("metrics", function() {
     var metrics;
+    var prefix;
+    var prefixed;
     var _send;
 
     beforeEach(function() {
         metrics = metricsd();
+
+        prefix = "test";
+
+        prefixed = metricsd({
+            prefix: prefix
+        });
 
         // allow metrics._send() to be mocked
         _send = metrics._send;
@@ -24,7 +32,10 @@ describe("metrics", function() {
 
     afterEach(function() {
         metrics._send = _send;
+        prefixed._send = _send;
+
         _send = undefined;
+        prefix = undefined;
     });
 
     describe(".enabled", function() {
@@ -208,6 +219,18 @@ describe("metrics", function() {
             metrics.mark(name);
         });
 
+        it("should update a prefixed, named meter", function(done) {
+            var name = "ticks";
+
+            prefixed._send = function(str) {
+                expect(str).to.equal(prefix + "." + name + "\n");
+
+                done();
+            };
+
+            prefixed.mark(name);
+        });
+
         it("should do nothing if no name was provided", function(done) {
             metrics._send = function(str) {
                 expect(str).to.equal(undefined);
@@ -353,6 +376,18 @@ describe("metrics", function() {
 
             metrics.deleteCounter(name);
         });
+
+        it("should delete a prefixed, named counter", function(done) {
+            var name = "Alex";
+
+            prefixed._send = function(str) {
+                expect(str).to.equal(prefix + "." + name + ":delete|c\n");
+
+                done();
+            };
+
+            prefixed.deleteCounter(name);
+        });
     });
 
     describe("#deleteGauge", function() {
@@ -366,6 +401,18 @@ describe("metrics", function() {
             }
 
             metrics.deleteGauge(name);
+        });
+
+        it("should delete a prefixed, named gauge", function(done) {
+            var name = "NorthForkSouthPlatte";
+
+            prefixed._send = function(str) {
+                expect(str).to.equal(prefix + "." + name + ":delete|g\n");
+
+                done();
+            };
+
+            prefixed.deleteGauge(name);
         });
     });
 
@@ -381,6 +428,18 @@ describe("metrics", function() {
 
             metrics.deleteHistogram(name);
         });
+
+        it("should delete a prefixed, named histogram", function(done) {
+            var name = "MoviesSeen";
+
+            prefixed._send = function(str) {
+                expect(str).to.equal(prefix + "." + name + ":delete|h\n");
+
+                done();
+            };
+
+            prefixed.deleteHistogram(name);
+        });
     });
 
     describe("#deleteMeter", function() {
@@ -394,6 +453,18 @@ describe("metrics", function() {
             }
 
             metrics.deleteMeter(name);
+        });
+
+        it("should delete a prefixed, named meter", function(done) {
+            var name = "volunteers";
+
+            prefixed._send = function(str) {
+                expect(str).to.equal(prefix + "." + name + ":delete\n");
+
+                done();
+            };
+
+            prefixed.deleteMeter(name);
         });
     });
 
@@ -410,6 +481,19 @@ describe("metrics", function() {
 
             metrics.updateCounter(name, value);
         });
+
+        it("should update a prefixed, named counter with the specified value", function(done) {
+            var name = "sentCount";
+            var value = 4;
+
+            prefixed._send = function(str) {
+                expect(str).to.equal(prefix + "." + name + ":" + value + "|c\n");
+
+                done();
+            };
+
+            prefixed.updateCounter(name, value);
+        });
     });
 
     describe("#updateGauge", function() {
@@ -425,6 +509,19 @@ describe("metrics", function() {
 
             metrics.updateGauge(name, value);
         });
+
+        it("should update a prefixed, named gauge with the specified value", function(done) {
+            var name = "width";
+            var value = 7;
+
+            prefixed._send = function(str) {
+                expect(str).to.equal(prefix + "." + name + ":" + value + "|g\n");
+
+                done();
+            };
+
+            prefixed.updateGauge(name, value);
+        });
     });
 
     describe("#updateHistogram", function() {
@@ -439,6 +536,19 @@ describe("metrics", function() {
             }
 
             metrics.updateHistogram(name, value);
+        });
+
+        it("should update a prefixed, named histogram with the specified value", function(done) {
+            var name = "DVDsOwned";
+            var value = 32;
+
+            prefixed._send = function(str) {
+                expect(str).to.equal(prefix + "." + name + ":" + value + "|h\n");
+
+                done();
+            };
+
+            prefixed.updateHistogram(name, value);
         });
     });
 
