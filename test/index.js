@@ -161,7 +161,7 @@ describe("metrics", function() {
         it("should do nothing if no name was provided", function(done) {
             metrics._send = function(str) {
                 expect(str).to.equal(undefined);
-            }
+            };
 
             metrics.inc();
 
@@ -198,7 +198,7 @@ describe("metrics", function() {
         it("should do nothing if no name was provided", function(done) {
             metrics._send = function(str) {
                 expect(str).to.equal(undefined);
-            }
+            };
 
             metrics.dec();
 
@@ -234,7 +234,7 @@ describe("metrics", function() {
         it("should do nothing if no name was provided", function(done) {
             metrics._send = function(str) {
                 expect(str).to.equal(undefined);
-            }
+            };
 
             metrics.mark();
 
@@ -333,7 +333,7 @@ describe("metrics", function() {
             sink.once("message", function(msg, rinfo) {
                 expect(msg.toString()).to.equal(metric);
 
-                done()
+                done();
             });
 
             metrics.write(metric);
@@ -343,7 +343,7 @@ describe("metrics", function() {
             sink.once("message", function(msg, rinfo) {
                 expect(msg.toString()).to.match(/\n$/);
 
-                done()
+                done();
             });
 
             metrics.write("event");
@@ -398,7 +398,7 @@ describe("metrics", function() {
                 expect(str).to.equal(name + ":delete|g\n");
 
                 done();
-            }
+            };
 
             metrics.deleteGauge(name);
         });
@@ -424,7 +424,7 @@ describe("metrics", function() {
                 expect(str).to.equal(name + ":delete|h\n");
 
                 done();
-            }
+            };
 
             metrics.deleteHistogram(name);
         });
@@ -450,7 +450,7 @@ describe("metrics", function() {
                 expect(str).to.equal(name + ":delete\n");
 
                 done();
-            }
+            };
 
             metrics.deleteMeter(name);
         });
@@ -477,7 +477,7 @@ describe("metrics", function() {
                 expect(str).to.equal(name + ":" + value + "|c\n");
 
                 done();
-            }
+            };
 
             metrics.updateCounter(name, value);
         });
@@ -505,7 +505,7 @@ describe("metrics", function() {
                 expect(str).to.equal(name + ":" + value + "|g\n");
 
                 done();
-            }
+            };
 
             metrics.updateGauge(name, value);
         });
@@ -533,7 +533,7 @@ describe("metrics", function() {
                 expect(str).to.equal(name + ":" + value + "|h\n");
 
                 done();
-            }
+            };
 
             metrics.updateHistogram(name, value);
         });
