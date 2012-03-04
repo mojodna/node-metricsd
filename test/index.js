@@ -918,7 +918,7 @@ describe("metrics", function() {
                 var lapName = "last";
 
                 metrics._send = function(str) {
-                    expect(str).to.match(new RegExp(lapName + ":.|h\n"));
+                    expect(str).to.match(new RegExp(lapName + ":.\\|h\n"));
 
                     done();
                 };
@@ -982,7 +982,7 @@ describe("metrics", function() {
                 var providedName = "sprint";
 
                 metrics._send = function(str) {
-                    expect(str).to.match(new RegExp(providedName + ":.|h\n"));
+                    expect(str).to.match(new RegExp(providedName + ":.\\|h\n"));
 
                     done();
                 };
@@ -992,7 +992,7 @@ describe("metrics", function() {
 
             it("should update a histogram with the timer's name if one wasn't provided", function(done) {
                 metrics._send = function(str) {
-                    expect(str).to.match(new RegExp(name + ":.|h\n"));
+                    expect(str).to.match(new RegExp(name + ":.\\|h\n"));
 
                     done();
                 };
