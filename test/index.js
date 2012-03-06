@@ -285,15 +285,15 @@ describe("metrics", function() {
         });
 
         it("should wrap a callback with a named timer", function(done) {
-            var callback = function() {
-                // TODO check via stubbed write call
-                // expect(timer.stopped).to.be.true;
-                // expect(timer.elapsedTime).to.be.above(0)
+            var name = "timer";
+
+            metrics._send = function(str) {
+                expect(str).to.match(new RegExp(name + ":\\d+\\|h\\n"));
 
                 done();
             };
 
-            var wrappedCallback = metrics.timeCallback("timer", callback);
+            var wrappedCallback = metrics.timeCallback("timer", function() {});
 
             setTimeout(wrappedCallback, 1);
         });
