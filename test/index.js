@@ -99,6 +99,16 @@ describe("metrics", function() {
         });
     });
 
+    describe(".batch", function() {
+        it("should default to false", function() {
+            expect(metrics.batch).to.be.false;
+        });
+
+        it("may be overridden by providing an option to the factory", function() {
+            expect(metricsd({ batch: true }).batch).to.be.true;
+        });
+    });
+
     it("should close idle sockets");
     it("should periodically close active sockets to avoid leaking memory");
 
@@ -304,63 +314,117 @@ describe("metrics", function() {
     });
 
     describe("#write", function() {
-        var port = 1234;
-        var sink;
+        describe("in batched mode", function() {
+            var values = ["metric.name:1234|g\n", "metric.name2:2345|h\n"];
 
-        beforeEach(function() {
-            metrics = metricsd({
-                port: port
+            beforeEach(function() {
+                metrics = metricsd({
+                    batch: true
+                });
+            });
+
+            it("should batch multiple metrics together", function(done) {
+                metrics._send = function(str) {
+                    expect(str).to.equal(values.join());
+
+                    done();
+                };
+
+                values.forEach(function(x) {
+                    metrics.write(x);
+                });
+            });
+
+            it("should not send batched metrics after being toggled off", function(done) {
+                metrics.batch = false;
+
+                var count = 0;
+                metrics._send = function(str) {
+                    expect(str).to.equal(values[count++]);
+
+                    if (count === values.length) {
+                        done();
+                    }
+                };
+
+                values.forEach(function(x) {
+                    metrics.write(x);
+                });
+            });
+
+            it("should send batched metrics after being toggled off then on", function(done) {
+                metrics.batch = false;
+                metrics.batch = true;
+
+                metrics._send = function(str) {
+                    expect(str).to.equal(values.join());
+
+                    done();
+                };
+
+                values.forEach(function(x) {
+                    metrics.write(x);
+                });
             });
         });
 
-        beforeEach(function(done) {
-            sink = require("dgram").createSocket("udp4");
+        describe("in non-batched mode", function() {
+            var port = 1234;
+            var sink;
 
-            sink.once("listening", done);
+            beforeEach(function(done) {
+                metrics = metricsd({
+                    port: port
+                });
 
-            sink.bind(port);
-        });
+                sink = require("dgram").createSocket("udp4");
 
-        afterEach(function(done) {
-            sink.once("close", done);
+                sink.once("listening", done);
 
-            sink.close();
-        });
-
-        it("should write a metricsd string to the network", function(done) {
-            var metric = "prefix.metric.name:1234|g\n";
-
-            sink.once("message", function(msg, rinfo) {
-                expect(msg.toString()).to.equal(metric);
-
-                done();
+                sink.bind(port);
             });
 
-            metrics.write(metric);
-        });
+            afterEach(function(done) {
+                sink.once("close", done);
 
-        it("should write newline-terminated strings", function(done) {
-            sink.once("message", function(msg, rinfo) {
-                expect(msg.toString()).to.match(/\n$/);
-
-                done();
+                sink.close();
             });
 
-            metrics.write("event");
-        });
+            it("should write a metricsd string to the network", function(done) {
+                var metric = "prefix.metric.name:1234|g\n";
 
-        it("should not write metrics when disabled", function(done) {
-            metrics.enabled = false;
+                sink.once("message", function(msg, rinfo) {
+                    expect(msg.toString()).to.equal(metric);
 
-            sink.on("message", function(msg, rinfo) {
-                // should not have been received
-                expect(msg.toString()).to.equal(undefined);
+                    done();
+                });
+
+                metrics.write(metric);
             });
 
-            metrics.write("event");
+            it("should write newline-terminated strings", function(done) {
+                sink.once("message", function(msg, rinfo) {
+                    expect(msg.toString()).to.match(/\n$/);
 
-            // give the message time to be sent (if it was indeed sent)
-            setTimeout(done, 10);
+                    done();
+                });
+
+                metrics.write("event");
+            });
+
+            it("should not write metrics when disabled", function(done) {
+                metrics.enabled = false;
+
+                sink.on("message", function(msg, rinfo) {
+                    // should not have been received
+                    expect(msg.toString()).to.equal(undefined);
+                });
+
+                metrics.write("event");
+
+                // give the message time to be sent (if it was indeed sent)
+                setTimeout(done, 10);
+            });
         });
     });
 
