@@ -1,3 +1,8 @@
+v0.1.2: Mar 6 2012
+==================
+
+* Limit batch sizes to 8kb to avoid UDP send failures
+
 v0.1.1: Mar 6 2012
 ==================
 
