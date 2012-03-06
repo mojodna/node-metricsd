@@ -314,12 +314,34 @@ describe("metrics", function() {
     });
 
     describe("#write", function() {
+        var port = 1234;
+        var sink;
+
+        beforeEach(function(done) {
+            metrics = metricsd({
+                port: port
+            });
+
+            sink = require("dgram").createSocket("udp4");
+
+            sink.once("listening", done);
+
+            sink.bind(port);
+        });
+
+        afterEach(function(done) {
+            sink.once("close", done);
+
+            sink.close();
+        });
+
         describe("in batched mode", function() {
             var values = ["metric.name:1234|g\n", "metric.name2:2345|h\n"];
 
             beforeEach(function() {
                 metrics = metricsd({
-                    batch: true
+                    batch: true,
+                    port: port
                 });
             });
 
@@ -366,30 +388,25 @@ describe("metrics", function() {
                     metrics.write(x);
                 });
             });
+
+            it("should flush metrics in small enough batches that they actually get sent", function(done) {
+                var values = [];
+
+                for (var i = 0; i < 1000; i++) {
+                    values.push("prefixed.metric" + i + ".value:12345|g\n");
+                }
+
+                sink.once("message", function(msg, rinfo) {
+                    done();
+                });
+
+                values.forEach(function(x) {
+                    metrics.write(x);
+                });
+            });
         });
 
         describe("in non-batched mode", function() {
-            var port = 1234;
-            var sink;
-
-            beforeEach(function(done) {
-                metrics = metricsd({
-                    port: port
-                });
-
-                sink = require("dgram").createSocket("udp4");
-
-                sink.once("listening", done);
-
-                sink.bind(port);
-            });
-
-            afterEach(function(done) {
-                sink.once("close", done);
-
-                sink.close();
-            });
-
             it("should write a metricsd string to the network", function(done) {
                 var metric = "prefix.metric.name:1234|g\n";
 
