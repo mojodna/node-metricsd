@@ -347,7 +347,7 @@ describe("metrics", function() {
 
             it("should batch multiple metrics together", function(done) {
                 metrics._send = function(str) {
-                    expect(str).to.equal(values.join());
+                    expect(str).to.equal(values.join(""));
 
                     done();
                 };
@@ -379,7 +379,7 @@ describe("metrics", function() {
                 metrics.batch = true;
 
                 metrics._send = function(str) {
-                    expect(str).to.equal(values.join());
+                    expect(str).to.equal(values.join(""));
 
                     done();
                 };

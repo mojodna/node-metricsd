@@ -1,3 +1,8 @@
+v0.1.3: Mar 6 2012
+==================
+
+* Stop generating invalid metric values when batched
+
 v0.1.2: Mar 6 2012
 ==================
 
