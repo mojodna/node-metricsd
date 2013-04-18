@@ -113,7 +113,7 @@ percentile, etc.).  (metricsd does the hard work.)
 
 ```javascript
 
-var histogram = metrics.gauge('numThings');
+var histogram = metrics.histogram('numThings');
 histogram.update(10); // min, max, mean == 10
 histogram.update(20); // min == 10, max == 20, mean == 10
 histogram.update(5);  // min == 5, max == 10, mean == 17.5
