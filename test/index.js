@@ -122,7 +122,7 @@ describe("metrics", function() {
         it("should return a named gauge", function() {
             var name = "Brian";
 
-            var gauge = metrics.gauge(name);
+            var gauge = metrics.gauge("%s", name);
 
             expect(gauge).to.be.an.instanceof(metrics.Gauge);
             expect(gauge.name).to.equal(name);
