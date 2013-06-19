@@ -2,6 +2,7 @@
 /*global describe:true, before:true, beforeEach:true, after:true, afterEach:true it:true */
 "use strict";
 
+var util = require("util");
 var metricsd = require("../index"),
     expect = require("chai").expect;
 
@@ -152,7 +153,7 @@ describe("metrics", function() {
             var name = "Whately";
 
             metrics._send = function(str) {
-                expect(str).to.equal(name + ":1|c\n");
+                expect(str).to.equal(name + ":1|c");
 
                 done();
             };
@@ -165,7 +166,7 @@ describe("metrics", function() {
             var value = 12;
 
             metrics._send = function(str) {
-                expect(str).to.equal(name + ":" + value + "|c\n");
+                expect(str).to.equal(name + ":" + value + "|c");
 
                 done();
             };
@@ -189,7 +190,7 @@ describe("metrics", function() {
             var name = "x";
 
             metrics._send = function(str) {
-                expect(str).to.equal(name + ":-1|c\n");
+                expect(str).to.equal(name + ":-1|c");
 
                 done();
             };
@@ -202,7 +203,7 @@ describe("metrics", function() {
             var value = 6;
 
             metrics._send = function(str) {
-                expect(str).to.equal(name + ":-" + value + "|c\n");
+                expect(str).to.equal(name + ":-" + value + "|c");
 
                 done();
             };
@@ -226,7 +227,7 @@ describe("metrics", function() {
             var name = "m";
 
             metrics._send = function(str) {
-                expect(str).to.equal(name + "\n");
+                expect(str).to.equal(name + "");
 
                 done();
             };
@@ -238,7 +239,7 @@ describe("metrics", function() {
             var name = "ticks";
 
             prefixed._send = function(str) {
-                expect(str).to.equal(prefix + "." + name + "\n");
+                expect(str).to.equal(prefix + "." + name + "");
 
                 done();
             };
@@ -303,7 +304,7 @@ describe("metrics", function() {
             var name = "timer";
 
             metrics._send = function(str) {
-                expect(str).to.match(new RegExp(name + ":\\d+\\|h\\n"));
+                expect(str).to.match(new RegExp(name + ":\\d+\\|h"));
 
                 done();
             };
@@ -319,28 +320,28 @@ describe("metrics", function() {
     });
 
     describe("#write", function() {
-        var port = 1234;
-        var sink;
+        describe("in network mode", function() {
+            var port = 1234;
+            var sink;
 
-        beforeEach(function(done) {
-            metrics = metricsd({
-                port: port
+            beforeEach(function(done) {
+                metrics = metricsd({
+                    port: port
+                });
+
+                sink = require("dgram").createSocket("udp4");
+
+                sink.once("listening", done);
+
+                sink.bind(port);
             });
 
-            sink = require("dgram").createSocket("udp4");
+            afterEach(function(done) {
+                sink.once("close", done);
 
-            sink.once("listening", done);
+                sink.close();
+            });
 
-            sink.bind(port);
-        });
-
-        afterEach(function(done) {
-            sink.once("close", done);
-
-            sink.close();
-        });
-
-        describe("in network mode", function() {
             it("should write a metricsd string to the network", function(done) {
                 var metric = "prefix.metric.name:1234|g\n";
 
@@ -367,14 +368,49 @@ describe("metrics", function() {
                 metrics.enabled = false;
 
                 sink.on("message", function(msg, rinfo) {
-                    // should not have been received
-                    expect(msg.toString()).to.equal(undefined);
+                    throw new Error("should not have been called");
                 });
 
                 metrics.write("event");
 
                 // give the message time to be sent (if it was indeed sent)
                 setTimeout(done, 10);
+            });
+        });
+
+        describe("in log mode", function() {
+            beforeEach(function() {
+                metrics.log = true;
+            });
+
+            it("should write a metricsd string to the console", function(done) {
+                var metric = "prefix.metric.name:1234|g";
+
+                metrics.logger = {
+                    log: function() {
+                        var msg = util.format.apply(null, arguments);
+                        expect(msg).to.equal("metric=" + metric);
+
+                        done();
+                    }
+                };
+
+                metrics.write(metric);
+            });
+
+            it("should not write metrics when disabled", function(done) {
+                metrics.enabled = false;
+
+                metrics.logger = {
+                    log: function(msg) {
+                        throw new Error("should not have been called");
+                    }
+                };
+
+                metrics.write("event");
+
+                // give the message time to be sent (if it was indeed sent)
+                setTimeout(done, 0);
             });
         });
     });
@@ -384,7 +420,7 @@ describe("metrics", function() {
             var name = "Dumas";
 
             metrics._send = function(str) {
-                expect(str).to.equal(name + ":delete|c\n");
+                expect(str).to.equal(name + ":delete|c");
 
                 done();
             };
@@ -396,7 +432,7 @@ describe("metrics", function() {
             var name = "Alex";
 
             prefixed._send = function(str) {
-                expect(str).to.equal(prefix + "." + name + ":delete|c\n");
+                expect(str).to.equal(prefix + "." + name + ":delete|c");
 
                 done();
             };
@@ -410,7 +446,7 @@ describe("metrics", function() {
             var name = "BoulderCreek";
 
             metrics._send = function(str) {
-                expect(str).to.equal(name + ":delete|g\n");
+                expect(str).to.equal(name + ":delete|g");
 
                 done();
             };
@@ -422,7 +458,7 @@ describe("metrics", function() {
             var name = "NorthForkSouthPlatte";
 
             prefixed._send = function(str) {
-                expect(str).to.equal(prefix + "." + name + ":delete|g\n");
+                expect(str).to.equal(prefix + "." + name + ":delete|g");
 
                 done();
             };
@@ -436,7 +472,7 @@ describe("metrics", function() {
             var name = "BooksRead";
 
             metrics._send = function(str) {
-                expect(str).to.equal(name + ":delete|h\n");
+                expect(str).to.equal(name + ":delete|h");
 
                 done();
             };
@@ -448,7 +484,7 @@ describe("metrics", function() {
             var name = "MoviesSeen";
 
             prefixed._send = function(str) {
-                expect(str).to.equal(prefix + "." + name + ":delete|h\n");
+                expect(str).to.equal(prefix + "." + name + ":delete|h");
 
                 done();
             };
@@ -462,7 +498,7 @@ describe("metrics", function() {
             var name = "visitors";
 
             metrics._send = function(str) {
-                expect(str).to.equal(name + ":delete\n");
+                expect(str).to.equal(name + ":delete");
 
                 done();
             };
@@ -474,7 +510,7 @@ describe("metrics", function() {
             var name = "volunteers";
 
             prefixed._send = function(str) {
-                expect(str).to.equal(prefix + "." + name + ":delete\n");
+                expect(str).to.equal(prefix + "." + name + ":delete");
 
                 done();
             };
@@ -489,7 +525,7 @@ describe("metrics", function() {
             var value = 74;
 
             metrics._send = function(str) {
-                expect(str).to.equal(name + ":" + value + "|c\n");
+                expect(str).to.equal(name + ":" + value + "|c");
 
                 done();
             };
@@ -502,7 +538,7 @@ describe("metrics", function() {
             var value = 4;
 
             prefixed._send = function(str) {
-                expect(str).to.equal(prefix + "." + name + ":" + value + "|c\n");
+                expect(str).to.equal(prefix + "." + name + ":" + value + "|c");
 
                 done();
             };
@@ -517,7 +553,7 @@ describe("metrics", function() {
             var value = 12;
 
             metrics._send = function(str) {
-                expect(str).to.equal(name + ":" + value + "|g\n");
+                expect(str).to.equal(name + ":" + value + "|g");
 
                 done();
             };
@@ -530,7 +566,7 @@ describe("metrics", function() {
             var value = 7;
 
             prefixed._send = function(str) {
-                expect(str).to.equal(prefix + "." + name + ":" + value + "|g\n");
+                expect(str).to.equal(prefix + "." + name + ":" + value + "|g");
 
                 done();
             };
@@ -545,7 +581,7 @@ describe("metrics", function() {
             var value = 126;
 
             metrics._send = function(str) {
-                expect(str).to.equal(name + ":" + value + "|h\n");
+                expect(str).to.equal(name + ":" + value + "|h");
 
                 done();
             };
@@ -558,7 +594,7 @@ describe("metrics", function() {
             var value = 32;
 
             prefixed._send = function(str) {
-                expect(str).to.equal(prefix + "." + name + ":" + value + "|h\n");
+                expect(str).to.equal(prefix + "." + name + ":" + value + "|h");
 
                 done();
             };
@@ -596,7 +632,7 @@ describe("metrics", function() {
         describe("#inc", function() {
             it("should increment the named counter", function(done) {
                 metrics._send = function(str) {
-                    expect(str).to.equal(name + ":1|c\n");
+                    expect(str).to.equal(name + ":1|c");
 
                     done();
                 };
@@ -608,7 +644,7 @@ describe("metrics", function() {
                 var value = 12;
 
                 metrics._send = function(str) {
-                    expect(str).to.equal(name + ":" + value + "|c\n");
+                    expect(str).to.equal(name + ":" + value + "|c");
 
                     done();
                 };
@@ -620,7 +656,7 @@ describe("metrics", function() {
         describe("#dec", function() {
             it("should decrement the named counter", function(done) {
                 metrics._send = function(str) {
-                    expect(str).to.equal(name + ":-1|c\n");
+                    expect(str).to.equal(name + ":-1|c");
 
                     done();
                 };
@@ -632,7 +668,7 @@ describe("metrics", function() {
                 var value = 57;
 
                 metrics._send = function(str) {
-                    expect(str).to.equal(name + ":-" + value + "|c\n");
+                    expect(str).to.equal(name + ":-" + value + "|c");
 
                     done();
                 };
@@ -644,7 +680,7 @@ describe("metrics", function() {
         describe("#delete", function() {
             it("should delete the named counter", function(done) {
                 metrics._send = function(str) {
-                    expect(str).to.equal(name + ":delete|c\n");
+                    expect(str).to.equal(name + ":delete|c");
 
                     done();
                 };
@@ -683,7 +719,7 @@ describe("metrics", function() {
         describe("#delete", function() {
             it("should delete the named gauge", function(done) {
                 metrics._send = function(str) {
-                    expect(str).to.equal(name + ":delete|g\n");
+                    expect(str).to.equal(name + ":delete|g");
 
                     done();
                 };
@@ -697,7 +733,7 @@ describe("metrics", function() {
                 var value = 16;
 
                 metrics._send = function(str) {
-                    expect(str).to.equal(name + ":" + value + "|g\n");
+                    expect(str).to.equal(name + ":" + value + "|g");
 
                     done();
                 };
@@ -737,7 +773,7 @@ describe("metrics", function() {
         describe("#delete", function() {
             it("should delete the named histogram", function(done) {
                 metrics._send = function(str) {
-                    expect(str).to.equal(name + ":delete|h\n");
+                    expect(str).to.equal(name + ":delete|h");
 
                     done();
                 };
@@ -751,7 +787,7 @@ describe("metrics", function() {
                 var value = 93;
 
                 metrics._send = function(str) {
-                    expect(str).to.equal(name + ":" + value + "|h\n");
+                    expect(str).to.equal(name + ":" + value + "|h");
 
                     done();
                 };
@@ -790,7 +826,7 @@ describe("metrics", function() {
         describe("#delete", function() {
             it("should delete the named meter", function(done) {
                 metrics._send = function(str) {
-                    expect(str).to.equal(name + ":delete\n");
+                    expect(str).to.equal(name + ":delete");
 
                     done();
                 };
@@ -802,7 +838,7 @@ describe("metrics", function() {
         describe("#mark", function() {
             it("should update the named meter", function(done) {
                 metrics._send = function(str) {
-                    expect(str).to.equal(name + "\n");
+                    expect(str).to.equal(name);
 
                     done();
                 };
@@ -933,7 +969,7 @@ describe("metrics", function() {
                 var lapName = "last";
 
                 metrics._send = function(str) {
-                    expect(str).to.match(new RegExp(lapName + ":.\\|h\n"));
+                    expect(str).to.match(new RegExp(lapName + ":.\\|h"));
 
                     done();
                 };
@@ -997,7 +1033,7 @@ describe("metrics", function() {
                 var providedName = "sprint";
 
                 metrics._send = function(str) {
-                    expect(str).to.match(new RegExp(providedName + ":.\\|h\n"));
+                    expect(str).to.match(new RegExp(providedName + ":.\\|h"));
 
                     done();
                 };
@@ -1007,7 +1043,7 @@ describe("metrics", function() {
 
             it("should update a histogram with the timer's name if one wasn't provided", function(done) {
                 metrics._send = function(str) {
-                    expect(str).to.match(new RegExp(name + ":.\\|h\n"));
+                    expect(str).to.match(new RegExp(name + ":.\\|h"));
 
                     done();
                 };

@@ -70,7 +70,7 @@ describe("metrics.middleware", function() {
             fn(req, res, next);
 
             metrics._send = function(str) {
-                expect(str).to.match(new RegExp(metric + ":\\d+\\|h\\n"));
+                expect(str).to.match(new RegExp(metric + ":\\d+\\|h"));
 
                 done();
             };
@@ -88,7 +88,7 @@ describe("metrics.middleware", function() {
             fn(req, res, next);
 
             metrics._send = function(str) {
-                expect(str).to.match(new RegExp(metric + ":\\d+\\|h\\n"));
+                expect(str).to.match(new RegExp(metric + ":\\d+\\|h"));
 
                 done();
             };
@@ -107,7 +107,7 @@ describe("metrics.middleware", function() {
 
             var sent = 0;
             metrics._send = function(str) {
-                expect(str).to.match(new RegExp(metricNames[sent++] + ":\\d+\\|h\\n"));
+                expect(str).to.match(new RegExp(metricNames[sent++] + ":\\d+\\|h"));
 
                 if (sent === 2) {
                     done();
@@ -153,7 +153,7 @@ describe("metrics.middleware", function() {
             });
 
             metrics._send = function(str) {
-                expect(str).to.match(new RegExp(metric + ":\\d+\\|h\\n"));
+                expect(str).to.match(new RegExp(metric + ":\\d+\\|h"));
 
                 done();
             };
