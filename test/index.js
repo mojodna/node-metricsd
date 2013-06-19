@@ -977,7 +977,7 @@ describe("metrics", function() {
                     expect(timer.lapStartTime).to.be.above(firstLapStartTime);
 
                     done();
-                }, 1);
+                }, 2);
             });
 
             it("should update .laps with an anonymous lap if no name was provided", function(done) {
