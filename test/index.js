@@ -142,6 +142,21 @@ describe("metrics", function() {
         });
     });
 
+    describe("#histogram", function() {
+        it("should return a named histogram", function() {
+            var name = "Paul";
+
+            var histogram = metrics.histogram(name);
+
+            expect(histogram).to.be.an.instanceof(metrics.Histogram);
+            expect(histogram.name).to.equal(name);
+        });
+
+        it("should return undefined if no name was provided", function() {
+            expect(metrics.gauge()).to.equal(undefined);
+        });
+    });
+
     describe("#inc", function() {
         it("should increment the named counter", function(done) {
             var name = "Whately";
