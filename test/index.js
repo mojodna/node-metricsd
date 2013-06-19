@@ -99,16 +99,6 @@ describe("metrics", function() {
         });
     });
 
-    describe(".batch", function() {
-        it("should default to false", function() {
-            expect(metrics.batch).to.be.false;
-        });
-
-        it("may be overridden by providing an option to the factory", function() {
-            expect(metricsd({ batch: true }).batch).to.be.true;
-        });
-    });
-
     it("should close idle sockets");
     it("should periodically close active sockets to avoid leaking memory");
 
@@ -350,78 +340,7 @@ describe("metrics", function() {
             sink.close();
         });
 
-        describe("in batched mode", function() {
-            var values = ["metric.name:1234|g\n", "metric.name2:2345|h\n"];
-
-            beforeEach(function() {
-                metrics = metricsd({
-                    batch: true,
-                    port: port
-                });
-            });
-
-            it("should batch multiple metrics together", function(done) {
-                metrics._send = function(str) {
-                    expect(str).to.equal(values.join(""));
-
-                    done();
-                };
-
-                values.forEach(function(x) {
-                    metrics.write(x);
-                });
-            });
-
-            it("should not send batched metrics after being toggled off", function(done) {
-                metrics.batch = false;
-
-                var count = 0;
-                metrics._send = function(str) {
-                    expect(str).to.equal(values[count++]);
-
-                    if (count === values.length) {
-                        done();
-                    }
-                };
-
-                values.forEach(function(x) {
-                    metrics.write(x);
-                });
-            });
-
-            it("should send batched metrics after being toggled off then on", function(done) {
-                metrics.batch = false;
-                metrics.batch = true;
-
-                metrics._send = function(str) {
-                    expect(str).to.equal(values.join(""));
-
-                    done();
-                };
-
-                values.forEach(function(x) {
-                    metrics.write(x);
-                });
-            });
-
-            it("should flush metrics in small enough batches that they actually get sent", function(done) {
-                var values = [];
-
-                for (var i = 0; i < 1000; i++) {
-                    values.push("prefixed.metric" + i + ".value:12345|g\n");
-                }
-
-                sink.once("message", function(msg, rinfo) {
-                    done();
-                });
-
-                values.forEach(function(x) {
-                    metrics.write(x);
-                });
-            });
-        });
-
-        describe("in non-batched mode", function() {
+        describe("in network mode", function() {
             it("should write a metricsd string to the network", function(done) {
                 var metric = "prefix.metric.name:1234|g\n";
 
