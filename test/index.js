@@ -3,7 +3,7 @@
 "use strict";
 
 var util = require("util");
-var metricsd = require("../index"),
+var metricsd = require("../lib/metricsd"),
     expect = require("chai").expect;
 
 describe("require('metricsd')", function() {

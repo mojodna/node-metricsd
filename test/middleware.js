@@ -3,7 +3,7 @@
 "use strict";
 
 var EventEmitter = require("events").EventEmitter,
-    metricsd = require("../index"),
+    metricsd = require("../lib/metricsd"),
     expect = require("chai").expect;
 
 describe("metrics.middleware", function() {
