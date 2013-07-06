@@ -1,10 +1,13 @@
-/*jshint expr:true */
-/*global describe:true, before:true, beforeEach:true, after:true, afterEach:true it:true */
 "use strict";
 
 var util = require("util");
 var metricsd = require("../lib/metricsd"),
     expect = require("chai").expect;
+
+var sleep = function(duration) {
+    var now = process.hrtime();
+    while (process.hrtime(now)[1] / 1e6 < duration) {}
+};
 
 describe("require('metricsd')", function() {
     it("should export a factory function", function() {
@@ -923,40 +926,32 @@ describe("metrics", function() {
         });
 
         describe("#pause", function() {
-            it("should pause the timer", function(done) {
+            it("should pause the timer", function() {
                 var pause = 2;
                 var time = timer.pause();
 
-                setTimeout(function() {
-                    var elapsed = timer.stop();
+                sleep(pause);
 
-                    expect(elapsed).to.be.lessThan(pause);
+                var elapsed = timer.stop();
 
-                    done();
-                }, pause);
+                expect(elapsed).to.be.lessThan(pause);
             });
         });
 
         describe("#resume", function() {
-            it("should resume the timer", function(done) {
-                var pause = 10;
+            it("should resume the timer", function() {
+                var pause = 2;
                 var time = timer.pause();
 
-                setTimeout(function() {
-                    var pausedTime = timer.resume();
+                sleep(pause);
 
-                    // high-resolution timing + setTimeout variation
-                    // = approximation (within 20%)
-                    expect(pausedTime).to.be.closeTo(pause, pause * 0.2);
+                var pausedTime = timer.resume();
+                expect(pausedTime).to.be.closeTo(pause, pause * 0.5);
 
-                    setTimeout(function() {
-                        var elapsed = timer.stop();
+                sleep(pause);
 
-                        expect(Math.round(elapsed)).to.be.closeTo(2 * pause, 2 * pause * 0.2);
-
-                        done();
-                    }, pause);
-                }, pause);
+                var elapsed = timer.stop();
+                expect(elapsed).to.be.closeTo(pause, pause * 0.5);
             });
         });
 
