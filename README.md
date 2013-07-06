@@ -1,4 +1,4 @@
-node-metrics
+metricsd
 ============
 
 I am a node.js client library for
@@ -29,7 +29,6 @@ The library currently exports a factory function that creates an instance of
 a Metrics object with the given `options`:
 
 ```javascript
-
 // make a metrics instance (default options are shown)
 var metricsd = require('metricsd'),
     metrics = metricsd({
@@ -39,7 +38,6 @@ var metricsd = require('metricsd'),
         prefix: null,
         timeout: 1000
     });
-
 ```
 
 The available options are:
@@ -64,11 +62,9 @@ Counters
 Create a new `Counter` with `metrics.count(name)` to track relative values.
 
 ```javascript
-
   var counter = metrics.count('numThings');
   counter.inc(2);  // +2
   counter.dec();   // -1
-
 ```
 
 Alternatively, write directly to a named counter with convenience functions on
@@ -88,12 +84,10 @@ Create a new `Gauge` with `metrics.gauge(name)` to track absolute values that
 are obtained on a regular basis.
 
 ```javascript
-
 var gauge = metrics.gauge('numThings');
 gauge.update(10); // numThings == 10
 gauge.update(20); // numThings == 20
 gauge.update(5);  // numThings == 5
-
 ```
 
 Alternatively, write directly to a named gauge with convenience functions on
@@ -112,12 +106,10 @@ values and their statistical breakdowns (max, min, mean, median, 75th
 percentile, etc.).  (metricsd does the hard work.)
 
 ```javascript
-
 var histogram = metrics.histogram('numThings');
 histogram.update(10); // min, max, mean == 10
 histogram.update(20); // min == 10, max == 20, mean == 10
 histogram.update(5);  // min == 5, max == 10, mean == 17.5
-
 ```
 
 Alternately, write directly to a named histogram with convenience functions on
@@ -134,21 +126,18 @@ Timers
 Create a new `Timer` with `metrics.time(name)`:
 
 ```javascript
-
 var timer = metrics.time('thingTime');
 
 setTimeout(function() {
   timer.stop();             // thingTime == 10ms (approx)
   assert.ok(timer.stopped); // time should be stopped
 }, 10);
-
 ```
 
 Or time a series of related events with `metrics.time(name)` and
 `timer.lap(name)`:
 
 ```javascript
-
 var timer = metrics.time('otherTime');
 
 setTimeout(function() {
@@ -163,14 +152,12 @@ setTimeout(function() {
   var duration = timer.stop(); // flushes otherTime == 20ms (approx)
   assert.ok(timer.stopped);    // time should be stopped
 }, 20);
-
 ```
 
 You can also pause and resume timers (e.g. if you don't want to include time
 spent "waiting"):
 
 ```javascript
-
 var timer = metricstime('sporadic');
 
 timer.pause();
@@ -180,21 +167,18 @@ setTimeout(function() {
 
   var duration = timer.stop(); // flushes sporadic == 0ms (approx)
 }, 10);
-
 ```
 
 Or time an event until a callback with `metrics.time(name,callback)`. Method
 arguments are passed on untouched:
 
 ```javascript
-
 var callback = metrics.timeCallback('thingTime', function(a, b, c) {
   console.log('thing happened %d,%d,%d', a, b, c); // thing happened 1,2,3
 });
 
 // ... 123ms later
 callback(1,2,3); // thingTime == 123ms
-
 ```
 
 Timers start automatically, but can be restarted by calling `timer.start()`.
@@ -230,12 +214,10 @@ compatible), it will be used to emit metric strings in the form `metric:
 something that can more efficiently funnel data into `metricsd` or similar.
 
 ```javascript
-
 var metricsd = require('metricsd'),
     metrics = metricsd({
       logger: console.log
     });
-
 ```
 
 License
