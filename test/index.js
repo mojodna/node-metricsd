@@ -922,6 +922,41 @@ describe("metrics", function() {
             });
         });
 
+        describe("#pause", function() {
+            it("should pause the timer", function(done) {
+                var time = timer.pause();
+
+                setTimeout(function() {
+                    var elapsed = timer.stop();
+
+                    expect(elapsed).to.equal(time);
+
+                    done();
+                }, 2);
+            });
+        });
+
+        describe("#resume", function() {
+            it("should resume the timer", function(done) {
+                var pause = 2;
+                var time = timer.pause();
+
+                setTimeout(function() {
+                    var pausedTime = timer.resume();
+
+                    expect(pausedTime).to.be.at.least(pause);
+
+                    setTimeout(function() {
+                        var elapsed = timer.stop();
+
+                        expect(elapsed).to.be.lessThan(2 * pause);
+
+                        done();
+                    }, pause);
+                }, pause);
+            });
+        });
+
         describe("#lap", function() {
             it("should reset the lap timer", function(done) {
                 var firstLapStartTime = timer.lapStartTime;

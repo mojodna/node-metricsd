@@ -166,6 +166,23 @@ setTimeout(function() {
 
 ```
 
+You can also pause and resume timers (e.g. if you don't want to include time
+spent "waiting"):
+
+```javascript
+
+var timer = metricstime('sporadic');
+
+timer.pause();
+
+setTimeout(function() {
+  timer.resume();
+
+  var duration = timer.stop(); // flushes sporadic == 0ms (approx)
+}, 10);
+
+```
+
 Or time an event until a callback with `metrics.time(name,callback)`. Method
 arguments are passed on untouched:
 
