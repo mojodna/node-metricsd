@@ -1,5 +1,3 @@
-/*jshint expr:true */
-/*global describe:true, before:true, beforeEach:true, after:true, afterEach:true it:true */
 "use strict";
 
 var EventEmitter = require("events").EventEmitter,
