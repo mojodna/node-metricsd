@@ -221,6 +221,23 @@ To send a raw metric with no formatting or prefixes applied, use
 [metricsd](https://github.com/mojodna/metricsd) for more info on formatting.
 
 
+Console Output
+==============
+
+If you provide a `logger` to the `metricsd()` factory (`console.log` or
+compatible), it will be used to emit metric strings in the form `metric:
+<metric>`. This can be convenient if your logs streams are being consumed by
+something that can more efficiently funnel data into `metricsd` or similar.
+
+```javascript
+
+var metricsd = require('metricsd'),
+    metrics = metricsd({
+      logger: console.log
+    });
+
+```
+
 License
 =======
 
