@@ -224,6 +224,6 @@ To send a raw metric with no formatting or prefixes applied, use
 License
 =======
 
-Copyright (c) 2012 Seth Fitzsimmons and Tom Carden
+Copyright (c) 2012-2013 Seth Fitzsimmons and Tom Carden
 
 Published under the MIT License.
