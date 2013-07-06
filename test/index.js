@@ -924,32 +924,35 @@ describe("metrics", function() {
 
         describe("#pause", function() {
             it("should pause the timer", function(done) {
+                var pause = 2;
                 var time = timer.pause();
 
                 setTimeout(function() {
                     var elapsed = timer.stop();
 
-                    expect(elapsed).to.equal(time);
+                    expect(elapsed).to.be.lessThan(pause);
 
                     done();
-                }, 2);
+                }, pause);
             });
         });
 
         describe("#resume", function() {
             it("should resume the timer", function(done) {
-                var pause = 2;
+                var pause = 10;
                 var time = timer.pause();
 
                 setTimeout(function() {
                     var pausedTime = timer.resume();
 
-                    expect(pausedTime).to.be.at.least(pause);
+                    // high-resolution timing + setTimeout variation
+                    // = approximation (within 20%)
+                    expect(pausedTime).to.be.closeTo(pause, pause * 0.2);
 
                     setTimeout(function() {
                         var elapsed = timer.stop();
 
-                        expect(elapsed).to.be.lessThan(2 * pause);
+                        expect(Math.round(elapsed)).to.be.closeTo(2 * pause, 2 * pause * 0.2);
 
                         done();
                     }, pause);
@@ -1032,7 +1035,7 @@ describe("metrics", function() {
 
                     timer.start();
 
-                    expect(timer.elapsedTime).to.equal(0);
+                    expect(Math.round(timer.elapsedTime)).to.equal(0);
 
                     done();
                 }, 1);
@@ -1048,18 +1051,6 @@ describe("metrics", function() {
 
                     done();
                 }, 1);
-            });
-
-            it("should reset the stop time", function() {
-                expect(timer.stopTime).to.equal(null);
-
-                timer.stop();
-
-                expect(timer.stopTime).to.be.above(0);
-
-                timer.start();
-
-                expect(timer.stopTime).to.equal(null);
             });
         });
 
