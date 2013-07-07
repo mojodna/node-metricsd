@@ -389,13 +389,11 @@ describe("metrics", function() {
             it("should write a metricsd string to the console", function(done) {
                 var metric = "prefix.metric.name:1234|g";
 
-                metrics.logger = {
-                    log: function() {
-                        var msg = util.format.apply(null, arguments);
-                        expect(msg).to.equal("metric=" + metric);
+                metrics.logger = function() {
+                    var msg = util.format.apply(null, arguments);
+                    expect(msg).to.equal("metric=" + metric);
 
-                        done();
-                    }
+                    done();
                 };
 
                 metrics.write(metric);
