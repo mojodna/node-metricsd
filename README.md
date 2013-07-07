@@ -35,6 +35,8 @@ var metricsd = require('metricsd'),
         host: "localhost",
         port: 8125,
         enabled: true,
+        log: false,
+        logger: console.log,
         prefix: null,
         timeout: 1000
     });
@@ -46,6 +48,9 @@ The available options are:
 * `enabled` - set to `false` if you don't want to send metrics while testing.
 * `prefix` - if you run more than one environment, machine or module, supply
   a `prefix` to identify all metrics from this instance.
+* `log` - whether to log metrics (using `logger`) instead of sending them using
+  a socket.
+* `logger` - `console.log`-compatible logger.
 * `timeout` - node-metricsd cleans up the internal socket if it's idle using
   this timeout (milliseconds), and periodically cleans up `Buffer`s using
   `10 * timeout` (a work-around for 0.6.7 and earlier).
@@ -208,6 +213,9 @@ To send a raw metric with no formatting or prefixes applied, use
 Console Output
 ==============
 
+Specify `log: true` to emit metrics to `STDOUT` rather than the default UDP
+socket.
+
 If you provide a `logger` to the `metricsd()` factory (`console.log` or
 compatible), it will be used to emit metric strings in the form `metric:
 <metric>`. This can be convenient if your logs streams are being consumed by
@@ -216,6 +224,7 @@ something that can more efficiently funnel data into `metricsd` or similar.
 ```javascript
 var metricsd = require('metricsd'),
     metrics = metricsd({
+      log: true,
       logger: console.log
     });
 ```
