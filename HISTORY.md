@@ -1,3 +1,18 @@
+v0.2.0: Jul 11 2013
+===================
+
+* High-resolution timing (using `process.hrtime()`)
+* `Timer.pause()` and `Timer.resume()`
+* Log stream output (as `metric=<metric>`)
+* Cleaned up socket handling; `close()` is no longer necessary when using Node
+  v0.10.x+
+* Removed batched metrics
+
+v0.1.4: Apr 18 2013
+===================
+
+* Added missing `metrics.histogram()`
+
 v0.1.3: Mar 6 2012
 ==================
 
