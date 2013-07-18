@@ -1,3 +1,8 @@
+v0.2.2: Jul 18 2013
+===================
+
+* Fixed formatting breakage introduced in 0.2.1
+
 v0.2.1: Jul 18 2013
 ===================
 
