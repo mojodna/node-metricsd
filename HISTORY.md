@@ -1,3 +1,8 @@
+v0.2.1: Jul 18 2013
+===================
+
+* `metrics.format(fmt, args...)` suitable for use with `metrics.write()`
+
 v0.2.0: Jul 11 2013
 ===================
 
