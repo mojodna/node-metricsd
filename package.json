@@ -2,7 +2,7 @@
   "author": "Seth Fitzsimmons <seth@mojodna.net> (http://mojodna.net/)",
   "name": "metricsd",
   "description": "metricsd (https://github.com/mojodna/metricsd) client",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "license": "MIT",
   "repository": {
     "type": "git",
