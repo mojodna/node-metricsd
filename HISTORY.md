@@ -1,3 +1,8 @@
+vNext
+=====
+
+* Pass the elapsed time as the last argument when using `metrics.timeCallback`
+
 v0.2.2: Jul 18 2013
 ===================
 
